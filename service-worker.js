@@ -1,22 +1,24 @@
 // service-worker.js
 
 self.addEventListener('install', (event) => {
+  console.log('Service Worker installed');
+});
+
+self.addEventListener('push', (event) => {
+  const payload = event.data ? event.data.text() : 'Default Push Message';
+
+  const options = {
+    body: payload
+  };
+
   event.waitUntil(
-    caches.open('my-cache').then((cache) => {
-      return cache.addAll([
-        '/',
-        '/index.html',
-        '/styles.css',
-        // Add other files you want to cache
-      ]);
-    })
+    self.registration.showNotification('Push Notification', options)
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  // Add custom behavior when notification is clicked
+  clients.openWindow('https://google.com');
 });
