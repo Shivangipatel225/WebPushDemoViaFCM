@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Web App</title>
+  <!-- Firebase scripts -->
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.6.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.6.2/firebase-messaging.js"></script>
+  <script>
+
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUL0J-lLYIZi0lUqbEE7MU7STxQdoTGEo",
+      authDomain: "shivangidemowebpushviafcm.firebaseapp.com",
+      projectId: "shivangidemowebpushviafcm",
+      storageBucket: "shivangidemowebpushviafcm.appspot.com",
+      messagingSenderId: "910130404760",
+      appId: "1:910130404760:web:41986ae58f4be12e4ddfed"
+    };
+
+  // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    const messaging = firebase.messaging();
+
+      messaging
+      .requestPermission()
+      .then(() => messaging.getToken())
+      .then((token) => console.log("FCM Token:", token))
+      .catch((err) => console.error("Error getting permission or token:", err));
+
+    
+    
+    function getRegisterToken(){
+    // Get Instance ID token. Initially this makes a network call, once retrieved
+// subsequent calls to getToken will return from cache.
+      messaging.getToken().then(function(currentToken) {
+        console.log(currentToken)
+
+        if (currentToken) {
+         saveToken(currentToken);
+         console.log(currentToken);
+         sendTokenToServer(currentToken);
+   // updateUIForPushEnabled(currentToken);
+       } else {
+
+    // Show permission request.
+        console.log('No Instance ID token available. Request permission to generate one.');
+    // Show permission UI.
+   // updateUIForPushPermissionRequired();
+        setTokenSentToServer(false);
+      }
+    }).catch(function(err) {
+      console.log('An error occurred while retrieving token. ', err);
+  //showToken('Error retrieving Instance ID token. ', err);
+      setTokenSentToServer(false);
+    });
+  }
+  function setTokenSentToServer(sent) {
+    window.localStorage.setItem('sentToServer', sent ? '1' : '0');
+  }
+  
+  function sendTokenToServer(currentToken) {
+    if (!isTokenSentToServer()) {
+      console.log('Sending token to server...');
+      // TODO(developer): Send the current token to your server.
+      setTokenSentToServer(true);
+    } else {
+      console.log('Token already sent to server so won\'t send it again ' +
+        'unless it changes');
+    }
+  }
+  function isTokenSentToServer() {
+    return window.localStorage.getItem('sentToServer') === '1';
+  }
+  
+  function saveToken(currentToken){
+   jQuery.ajax({
+     data: {"token":currentToken},
+     type: "post",
+     url: "savefcmtoken.php",
+     success: function(result){
+       console.log(result);
+     }
+
+   });
+ }
+       // Handle incoming messages (push notifications)
+ messaging.onMessage((payload) => {
+  console.log("Message received:", payload);
+
+      // Customize how you want to handle the received message
+      // For example, display a notification to the user
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: payload.notification.icon,
+  };
+
+      // Display the notification
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
+if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => {
+          console.log('Service Worker registered with scope:', registration.scope);
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error);
+        });
+    }
+</script>
+</head>
+
+<body>
+  <h1>Your Web App Content</h1>
+
+  <p>This is your web app's content.</p>
+  <!-- Your web app content goes here -->
+</body>
+
+</html>
